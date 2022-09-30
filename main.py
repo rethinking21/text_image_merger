@@ -1,16 +1,13 @@
-# This is a sample Python script.
+import os
+from text_image_merge import ImageManager
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+FONT_PATH = './font/naver_handwriting'
+IMG_TEST_PATH = './test/high1.jpg'
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    fonts = [font_path for font_path in os.listdir(FONT_PATH)
+             if '.ttf' in font_path]
+    ImageMan = ImageManager.ImageManager(img_path=IMG_TEST_PATH, fonts=fonts)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    ImageMan.resize_image()
+    ImageMan.main_img.show()
