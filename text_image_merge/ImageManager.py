@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import random
 
 
@@ -9,6 +9,7 @@ class ImageManager:
         self.fonts: list = []
         self.font: str = ''
         self.main_img: Image
+        self.return_img: Image
         self.text: str = text
 
         if img_path:
@@ -19,6 +20,8 @@ class ImageManager:
             print("Warning : there's no img in here.")
             self.main_img = Image.open("")
 
+        self.return_img = self.main_img
+
         # default setting
         self.settings = {
             'random font': True,
@@ -28,45 +31,45 @@ class ImageManager:
         }
 
         if fonts:
-            self.set_fonts(fonts)
+            self.add_fonts(fonts)
 
     # region edit and add image
 
     def resize_image(self, size: tuple = (1024, 1024)):
         # add some features..
-        img_size = self.main_img.size
+        img_size = self.return_img.size
 
         if self.settings['square img'] and img_size[0] == img_size[1]:
-            self.main_img.resize(size)
+            self.return_img.resize(size)
             return
 
         if img_size[0] * size[1] > img_size[1] * size[0]:
             # if there is extra length size
             length = int(size[0] * (img_size[1]/size[1]))
             diff = int(img_size[0] - length) // 2
-            self.main_img = self.main_img.crop((diff, 0, length + diff, img_size[1]))
+            self.return_img = self.return_img.crop((diff, 0, length + diff, img_size[1]))
         else:
             # if there is extra width size
             width = int(size[1] * (img_size[0]/size[0]))
             diff = int(img_size[1] - width) // 2
-            self.main_img = self.main_img.crop((0, diff, img_size[0], width + diff))
+            self.return_img = self.return_img.crop((0, diff, img_size[0], width + diff))
 
-        self.main_img = self.main_img.resize(size)
+        self.return_img = self.return_img.resize(size)
         return
 
     def open_image(self, img_path: str) -> None:
-        self.main_img = Image.open(img_path)
+        self.return_img = Image.open(img_path)
 
     # endregion
 
     # region font and font size
 
-    def set_font(self, font_path: str) -> None:
+    def add_font(self, font_path: str) -> None:
         self.fonts.append(font_path)
 
-    def set_fonts(self, fonts: list) -> None:
+    def add_fonts(self, fonts: list) -> None:
         for font_path in fonts:
-            self.set_font(font_path)
+            self.add_font(font_path)
 
     def set_font_size(self) -> int:
         if self.main_img is None:
@@ -77,6 +80,13 @@ class ImageManager:
         # editing
         return 10
 
+    def set_font_random(self):
+        self.font = random.choice(self.fonts)
+
     # endregion
 
-
+    def add_text_in_middle(self):
+        draw = ImageDraw.Draw(self.return_img)
+        # text_list = self.text.split('\n')
+        font = ImageFont.truetype(self.font, size=100)
+        draw.text((100, 100), self.text, fill='white', font=font)
