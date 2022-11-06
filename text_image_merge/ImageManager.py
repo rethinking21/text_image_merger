@@ -4,6 +4,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import random
 import itertools
+import time
 
 
 class ImageManager:
@@ -125,6 +126,8 @@ class ImageManager:
         self.text_bound_limit: tuple[float, float] = (0.8, 0.8)
         self.text_block_sizes: list[tuple[float, float]] = []
 
+        self.text_color: tuple[int, int, int, int] = (255, 255, 255, 255)
+
         # default setting
         self.settings = {
             'random font': True,
@@ -200,7 +203,8 @@ class ImageManager:
     # endregion
 
     # region text in middle
-    def add_text_in_middle(self, line=False, font_tags: list = None) -> None:
+    def add_text_in_middle(self, line=False, font_tags: list = None,
+                           auto_font_color: bool = False) -> None:
         draw = ImageDraw.Draw(self.img)
         font = self.Font.object()
 
@@ -209,7 +213,6 @@ class ImageManager:
             text_w, text_h = draw.textsize(text, font=font)
             w_list.append(text_w)
             h_list.append(text_h)
-        h_sum = sum(h_list)
         img_w, img_h = self.img.size
 
         self.update_text_blocks(draw)
@@ -217,10 +220,13 @@ class ImageManager:
         font = self.Font.object()
 
         h_sum = sum([size[1] for size in self.text_block_sizes])
+        if auto_font_color:
+            self.set_font_color(h_sum)
+
         h_count = 0.0
         for text, size in zip(self.texts, self.text_block_sizes):
             draw.text(((img_w - size[0]) // 2, (img_h - h_sum) // 2 + h_count),
-                      text, fill=(255, 255, 255), font=font)
+                      text, fill=self.text_color, font=font)
             h_count += size[1]
 
     def update_text_blocks(self, draw: ImageDraw.Draw = None) -> None:
@@ -245,3 +251,15 @@ class ImageManager:
             self.update_text_blocks(draw)
 
     # endregion
+
+    def set_font_color(self, text_h: int):
+        img_w, img_h = self.img.size
+        temp_pixel = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize()
+        self.text_color = (0, 0, 0, 255)
+
+    def add_watermark(self):
+        pass
+
+    def add_datetime(self):
+        pass
+
