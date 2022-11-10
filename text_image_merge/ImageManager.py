@@ -254,8 +254,8 @@ class ImageManager:
 
     def set_font_color(self, text_h: int):
         img_w, img_h = self.img.size
-        temp_pixel = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize()
-        self.text_color = (0, 0, 0, 255)
+        r, g, b = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize((1, 1), Image.BOX).load()[0, 0]
+        self.text_color = (0, 0, 0, 255) if r+g+b >= 500 else (240, 240, 240, 255)
 
     def add_watermark(self):
         pass
