@@ -121,6 +121,8 @@ class ImageManager:
 
         self.img_original: Image
         self.img: Image
+        self.text_img: Image
+        self.filter_img: Image
 
         self.texts: list = text.split('\n')
         self.text_bound_limit: tuple[float, float] = (0.8, 0.8)
@@ -138,7 +140,7 @@ class ImageManager:
 
         # setting elements
         if img_path:
-            self.img_original = Image.open(img_path)
+            self.img_original = Image.open(img_path).convert("RGBA")
         elif img:
             self.img_original = img
         else:
@@ -146,6 +148,8 @@ class ImageManager:
             self.img_original = Image.open("")
 
         self.img = self.img_original
+        self.text_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 0))
+        self.filter_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 0))
 
         # add_font
         if not fonts:
@@ -173,10 +177,8 @@ class ImageManager:
         img_size = self.img.size
 
         if self.settings['square img'] and img_size[0] == img_size[1]:
-            self.img = self.img.resize(size)
-            return
-
-        if img_size[0] * size[1] > img_size[1] * size[0]:
+            pass
+        elif img_size[0] * size[1] > img_size[1] * size[0]:
             # if there is extra length size
             length = int(size[0] * (img_size[1] / size[1]))
             diff = int(img_size[0] - length) // 2
@@ -188,7 +190,11 @@ class ImageManager:
             self.img = self.img.crop((0, diff, img_size[0], width + diff))
 
         self.img = self.img.resize(size)
+        self.text_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 0))
+        self.filter_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 0))
+
         return
+
 
     def open_image(self, img_path: str) -> None:
         """
@@ -205,7 +211,7 @@ class ImageManager:
     # region text in middle
     def add_text_in_middle(self, line=False, font_tags: list = None,
                            auto_font_color: bool = False) -> None:
-        draw = ImageDraw.Draw(self.img)
+        draw = ImageDraw.Draw(self.text_img)
         font = self.Font.object()
 
         w_list, h_list = [], []
@@ -213,7 +219,7 @@ class ImageManager:
             text_w, text_h = draw.textsize(text, font=font)
             w_list.append(text_w)
             h_list.append(text_h)
-        img_w, img_h = self.img.size
+        img_w, img_h = self.text_img.size
 
         self.update_text_blocks(draw)
         self.fit_text_font_size(draw)
@@ -236,7 +242,7 @@ class ImageManager:
                                  for text in self.texts]
 
     def fit_text_font_size(self, draw: ImageDraw.Draw = None) -> None:
-        img_w, img_h = self.img.size
+        img_w, img_h = self.text_img.size
         text_max_w = max([size[0] for size in self.text_block_sizes])
         text_max_h = max([size[1] for size in self.text_block_sizes])
 
@@ -254,8 +260,11 @@ class ImageManager:
 
     def set_font_color(self, text_h: int):
         img_w, img_h = self.img.size
-        r, g, b = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize((1, 1), Image.BOX).load()[0, 0]
+        r, g, b, _ = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize((1, 1), Image.BOX).load()[0, 0]
         self.text_color = (0, 0, 0, 255) if r+g+b >= 500 else (240, 240, 240, 255)
+
+    def add_color_img(self):
+        self.filter_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 80))
 
     def add_watermark(self):
         pass
@@ -263,3 +272,12 @@ class ImageManager:
     def add_datetime(self):
         pass
 
+    def merge_img(self, text_add_time: int = 1) -> Image:
+        return_img = self.img
+        return_img.paste(self.filter_img, mask=self.filter_img)
+        for _ in ' ' * text_add_time:
+            return_img.paste(self.text_img, mask=self.text_img)
+        return return_img
+
+    def set_text(self, texts: str = ''):
+        self.texts = texts.split('\n')
