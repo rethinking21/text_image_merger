@@ -263,14 +263,16 @@ class ImageManager:
         r, g, b, _ = self.img.crop((0, (img_h - text_h)//2, img_w, (img_h + text_h)//2)).resize((1, 1), Image.BOX).load()[0, 0]
         self.text_color = (0, 0, 0, 255) if r+g+b >= 500 else (240, 240, 240, 255)
 
-    def add_color_img(self):
-        self.filter_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 80))
+    def add_color_img(self, color: tuple[int, int, int, int] = (0, 0, 0, 80)):
+        self.filter_img = Image.new(mode="RGBA", size=self.img.size, color=color)
 
-    def add_watermark(self):
-        pass
-
-    def add_datetime(self):
-        pass
+    def add_watermark(self, font_path: str):
+        draw = ImageDraw.Draw(self.text_img)
+        watermark_font = ImageFont.truetype(font_path, size=25)
+        now = time.localtime()
+        time_text = f'public Image HAI({now.tm_year}.{now.tm_mon}.{now.tm_mday});'
+        draw.text((self.text_img.size[0] * 0.6, self.text_img.size[1] * 0.97),
+                  text=time_text, fill=(255, 255, 255, 64), font=watermark_font)
 
     def merge_img(self, text_add_time: int = 1) -> Image:
         return_img = self.img
