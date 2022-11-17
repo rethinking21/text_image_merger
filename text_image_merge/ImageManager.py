@@ -4,7 +4,6 @@
 from PIL import Image, ImageDraw, ImageFont
 import random
 import itertools
-import time
 
 
 class ImageManager:
@@ -211,6 +210,7 @@ class ImageManager:
     # region text in middle
     def add_text_in_middle(self, line=False, font_tags: list = None,
                            auto_font_color: bool = False) -> None:
+        self.text_img = Image.new(mode="RGBA", size=self.img.size, color=(0, 0, 0, 0))
         draw = ImageDraw.Draw(self.text_img)
         font = self.Font.object()
 
@@ -268,11 +268,14 @@ class ImageManager:
 
     def add_watermark(self, font_path: str):
         draw = ImageDraw.Draw(self.text_img)
-        watermark_font = ImageFont.truetype(font_path, size=25)
-        now = time.localtime()
-        time_text = f'public Image HAI({now.tm_year}.{now.tm_mon}.{now.tm_mday});'
-        draw.text((self.text_img.size[0] * 0.6, self.text_img.size[1] * 0.97),
-                  text=time_text, fill=(255, 255, 255, 64), font=watermark_font)
+        watermark_font = ImageFont.truetype(font_path, size=20)
+        watermark_font2 = ImageFont.truetype(font_path, size=45)
+        HAI = 'HAI'
+        text = f'Hanyang AI Study Group'
+        draw.text((self.text_img.size[0] * 0.382, self.text_img.size[1] * 0.965),
+                  text=text, fill=(255, 255, 255, 64), font=watermark_font)
+        draw.text((self.text_img.size[0] * 0.467, self.text_img.size[1] * 0.92),
+                  text=HAI, fill=(255, 255, 255, 64), font=watermark_font2)
 
     def merge_img(self, text_add_time: int = 1) -> Image:
         return_img = self.img
